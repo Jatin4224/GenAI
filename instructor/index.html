@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Git Instructor — DSA/Git Helper</title>
+    <style>
+      :root {
+        --bg: #0f1221;
+        --panel: #171a2e;
+        --muted: #8a90b2;
+        --text: #e9ecff;
+        --accent: #7c5cff;
+        --accent-2: #36d7b7;
+        --danger: #ff6b6b;
+        --radius: 16px;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background: radial-gradient(
+            1200px 600px at 80% -10%,
+            rgba(124, 92, 255, 0.18),
+            transparent 60%
+          ),
+          radial-gradient(
+            900px 500px at -10% 90%,
+            rgba(54, 215, 183, 0.12),
+            transparent 60%
+          ),
+          var(--bg);
+        color: var(--text);
+        font: 16px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Inter,
+          "Helvetica Neue", Arial;
+      }
+      .container {
+        max-width: 980px;
+        margin: 40px auto;
+        padding: 0 16px;
+      }
+      .card {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.02),
+          rgba(255, 255, 255, 0)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 24px;
+      }
+      .logo {
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--accent), #5b3df2);
+        box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.12);
+      }
+      .title {
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .subtitle {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 16px;
+        padding: 0 24px 24px;
+      }
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: var(--radius);
+        padding: 16px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        color: var(--muted);
+        margin: 0 0 8px;
+      }
+      textarea,
+      input[type="text"] {
+        width: 100%;
+        padding: 14px 14px;
+        background: #0c0f1d;
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        outline: none;
+        resize: vertical;
+        min-height: 110px;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .btn {
+        appearance: none;
+        border: none;
+        padding: 12px 16px;
+        border-radius: 12px;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.25s transform ease, 0.25s opacity ease;
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+      .btn.secondary {
+        background: #242846;
+      }
+      .btn.ghost {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .btn.danger {
+        background: var(--danger);
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .output {
+        min-height: 140px;
+        white-space: pre-wrap;
+      }
+      .code {
+        background: #0b0e1a;
+        border: 1px dashed rgba(255, 255, 255, 0.12);
+        padding: 14px;
+        border-radius: 12px;
+        overflow: auto;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        font-size: 13px;
+      }
+      .flex {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .badge {
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(124, 92, 255, 0.1);
+      }
+      .history {
+        max-height: 360px;
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .hist-item {
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        background: #0c0f1d;
+      }
+      .hist-item .q {
+        font-weight: 600;
+      }
+      .spinner {
+        width: 18px;
+        height: 18px;
+        border: 3px solid rgba(255, 255, 255, 0.25);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        display: none;
+      }
+      .spinner.show {
+        display: inline-block;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .note {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <div class="header">
+          <div class="logo" aria-hidden="true">🤖</div>
+          <div>
+            <div class="title">Git Instructor</div>
+            <div class="subtitle">
+              Ask anything about <strong>Git/GitHub</strong> and
+              <strong>DSA</strong>. Non‑related questions will get a rude reply
+              (demo of system rules).
+            </div>
+          </div>
+        </div>
+        <div class="grid">
+          <!-- Left: Ask & Response -->
+          <section class="panel">
+            <label for="question">Your question</label>
+            <textarea
+              id="question"
+              placeholder="e.g., Explain git rebase vs merge in simple terms"
+            ></textarea>
+            <div class="row">
+              <button id="askBtn" class="btn">Ask Instructor</button>
+              <button id="clearBtn" class="btn secondary">Clear</button>
+              <span class="flex muted"
+                ><span class="spinner" id="spinner"></span
+                ><span id="statusText"></span
+              ></span>
+            </div>
+
+            <div
+              class="row"
+              style="justify-content: space-between; margin-top: 16px"
+            >
+              <span class="flex muted"
+                ><span class="badge">Mode</span> API via <code>fetch</code> or
+                copy the cURL below.</span
+              >
+              <button id="copyCurl" class="btn ghost">Copy cURL</button>
+            </div>
+            <pre class="code" id="curlBox">
+curl -X POST http://localhost:3000/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question":"Explain git rebase vs merge in simple terms"}'</pre
+            >
+
+            <label style="margin-top: 14px">Response</label>
+            <div class="output panel" id="answer">
+              Ask something to see the response here…
+            </div>
+            <div class="note">
+              ⚠️ Frontend never exposes API keys. Point this UI to your own
+              backend (e.g., <code>POST /ask</code>) that calls Gemini/Google
+              GenAI securely on the server.
+            </div>
+          </section>
+
+          <!-- Right: History & Settings -->
+          <aside class="panel">
+            <div
+              class="flex"
+              style="justify-content: space-between; margin-bottom: 8px"
+            >
+              <div class="flex" style="gap: 8px; align-items: center">
+                <span class="badge">History</span>
+                <span class="muted">Recent Q&A</span>
+              </div>
+              <button id="clearHistory" class="btn ghost">Clear History</button>
+            </div>
+            <div id="history" class="history"></div>
+
+            <hr
+              style="
+                border: none;
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+                margin: 16px 0;
+              "
+            />
+
+            <div>
+              <div class="badge">Endpoint</div>
+              <div class="note" style="margin-top: 6px">
+                Default: <code>http://localhost:3000/ask</code>. Change if your
+                backend uses another URL.
+              </div>
+              <input
+                type="text"
+                id="endpoint"
+                value="http://localhost:3000/ask"
+                style="margin-top: 8px; height: 44px"
+              />
+            </div>
+
+            <div style="margin-top: 14px">
+              <div class="badge">System Rules</div>
+              <div class="note" style="margin-top: 6px">
+                The server should enforce this prompt: “If question is
+                Git/GitHub/DSA ➜ be polite. Otherwise ➜ be rude.”
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const questionEl = document.getElementById("question");
+      const askBtn = document.getElementById("askBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const answerEl = document.getElementById("answer");
+      const curlBox = document.getElementById("curlBox");
+      const copyCurlBtn = document.getElementById("copyCurl");
+      const spinner = document.getElementById("spinner");
+      const statusText = document.getElementById("statusText");
+      const endpointEl = document.getElementById("endpoint");
+      const historyEl = document.getElementById("history");
+      const clearHistoryBtn = document.getElementById("clearHistory");
+
+      const HISTORY_KEY = "git-instructor-history-v1";
+
+      function setLoading(isLoading, text = "") {
+        spinner.classList.toggle("show", isLoading);
+        statusText.textContent = text;
+      }
+
+      function updateCurl() {
+        const q = (
+          questionEl.value || "Explain git rebase vs merge in simple terms"
+        ).replace(/"/g, '\\"');
+        const url = endpointEl.value.trim() || "http://localhost:3000/ask";
+        curlBox.textContent = `curl -X POST ${url} \\\n  -H "Content-Type: application/json" \\\n  -d '{"question":"${q}"}'`;
+      }
+
+      function loadHistory() {
+        const data = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+        historyEl.innerHTML = "";
+        data
+          .slice()
+          .reverse()
+          .forEach((item) => {
+            const div = document.createElement("div");
+            div.className = "hist-item";
+            div.innerHTML = `<div class="q">Q: ${escapeHtml(
+              item.q
+            )}</div><div class="muted" style="margin-top:6px">A: ${escapeHtml(
+              item.a
+            )}</div>`;
+            historyEl.appendChild(div);
+          });
+      }
+
+      function saveHistory(q, a) {
+        const data = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+        data.push({ q, a, t: Date.now() });
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(data.slice(-50))); // keep last 50
+        loadHistory();
+      }
+
+      function escapeHtml(s) {
+        return s.replace(
+          /[&<>"]/g,
+          (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])
+        );
+      }
+
+      async function ask() {
+        const q = questionEl.value.trim();
+        if (!q) {
+          questionEl.focus();
+          return;
+        }
+        updateCurl();
+        setLoading(true, "Asking…");
+        answerEl.textContent = "";
+
+        try {
+          const res = await fetch(
+            endpointEl.value || "http://localhost:3000/ask",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ question: q }),
+            }
+          );
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const data = await res.json();
+          const text = data.answer || data.text || JSON.stringify(data);
+          answerEl.textContent = text;
+          saveHistory(q, text);
+          setLoading(false, "Done");
+          setTimeout(() => setLoading(false, ""), 800);
+        } catch (err) {
+          setLoading(false, "Error");
+          answerEl.innerHTML = `<span style="color:var(--danger)">Request failed:</span> ${escapeHtml(
+            String(err)
+          )}`;
+        }
+      }
+
+      askBtn.addEventListener("click", ask);
+      clearBtn.addEventListener("click", () => {
+        questionEl.value = "";
+        updateCurl();
+        answerEl.textContent = "";
+      });
+      copyCurlBtn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(curlBox.textContent);
+          copyCurlBtn.textContent = "Copied!";
+          setTimeout(() => (copyCurlBtn.textContent = "Copy cURL"), 900);
+        } catch (e) {}
+      });
+      endpointEl.addEventListener("input", updateCurl);
+      questionEl.addEventListener("input", updateCurl);
+      clearHistoryBtn.addEventListener("click", () => {
+        localStorage.removeItem(HISTORY_KEY);
+        loadHistory();
+      });
+
+      loadHistory();
+      updateCurl();
+    </script>
+  </body>
+</html>

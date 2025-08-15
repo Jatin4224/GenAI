@@ -6,8 +6,6 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
-const Context = [];
-
 async function User(userQuery) {
   Context.push({
     role: "user",
@@ -27,7 +25,7 @@ async function User(userQuery) {
 }
 
 async function main() {
-  const userQuery = readlineSync.question("Ask me anything ");
+  const userQuery = readlineSync.question("Hanji pucho!!");
   await User(userQuery); //if i dont write await here the main function will be called early
   main();
 }
