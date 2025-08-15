@@ -3,15 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
-
   "scripts": {
-    "start":"node index.js",
+    "start": "node chatbot.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@google/genai": "^1.14.0"
+    "@google/genai": "^1.14.0",
+    "readline-sync": "^1.4.10"
   }
 }
