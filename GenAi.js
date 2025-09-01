@@ -35,10 +35,15 @@
 // main();
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import "dotenv/config";
+
+import { HumanMessage } from "@langchain/core/messages";
+
 const model = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-flash",
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-const response = await model.invoke("the green tea is");
+const prompt = [new HumanMessage("What is the capital of Rajasthan?")];
+
+const response = await model.invoke(prompt);
 console.log(response);
