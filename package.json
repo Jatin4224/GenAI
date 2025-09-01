@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@google/genai": "^1.13.0",
+    "@langchain/google-genai": "^0.2.16",
     "dotenv": "^17.2.1",
     "readline-sync": "^1.4.10"
   }
