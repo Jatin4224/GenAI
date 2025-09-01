@@ -94,31 +94,88 @@
 // //   answer: "They weigh the same.",
 // //   justification: "A pound of bricks and a pound of feathers are both one pound."
 // // }
+// import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+// import { CommaSeparatedListOutputParser } from "@langchain/core/output_parsers";
+// import "dotenv/config";
+// import z from "zod";
+// const answerSchema = z
+//   .object({
+//     answer: z.string().describe("The answer to the user's question"),
+//     justification: z.string().describe("Reasoning behind the answer"),
+//   })
+//   .describe("An answer along with justification.");
+
+// const parser = new CommaSeparatedListOutputParser();
+
+// const model = new ChatGoogleGenerativeAI({
+//   model: "gemini-2.5-flash",
+//   apiKey: process.env.GEMINI_API_KEY,
+//   temperature: 0, // lower = more deterministic
+// });
+
+// // 3. Ask a question
+// const response = await model.invoke("green tea recipe?");
+
+// // Parse Gemini’s raw text into a clean array
+// const parsedList = await parser.invoke(response.content);
+
+// console.log(parsedList);
+// // Example Output:
+// // ["ginger", "cardamom", "cloves"]
+// import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+// import { ChatPromptTemplate } from "@langchain/core/prompts";
+// import { RunnableLambda } from "@langchain/core/runnables";
+// import "dotenv/config";
+
+// // 1. Build a chat prompt template
+// const template = ChatPromptTemplate.fromMessages([
+//   ["system", "You are a helpful assistant."],
+//   ["human", "{question}"],
+// ]);
+
+// // 2. Define the Gemini model
+// const model = new ChatGoogleGenerativeAI({
+//   model: "gemini-2.5-flash",
+//   apiKey: process.env.GEMINI_API_KEY,
+// });
+
+// // 3. Combine them in a custom function (RunnableLambda)
+// const chatbot = RunnableLambda.from(async (values) => {
+//   const prompt = await template.invoke(values);
+//   return await model.invoke(prompt);
+// });
+
+// // 4. Use it
+// const response = await chatbot.invoke({
+//   question: "Which spices are commonly added to chai?",
+// });
+
+// console.log(response.content);
+// // 👉 "Ginger and cardamom are commonly added to chai for flavor."
+// 1. Same prompt
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { CommaSeparatedListOutputParser } from "@langchain/core/output_parsers";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+
 import "dotenv/config";
-import z from "zod";
-const answerSchema = z
-  .object({
-    answer: z.string().describe("The answer to the user's question"),
-    justification: z.string().describe("Reasoning behind the answer"),
-  })
-  .describe("An answer along with justification.");
 
-const parser = new CommaSeparatedListOutputParser();
+const template = ChatPromptTemplate.fromMessages([
+  ["system", "You are a helpful assistant."],
+  ["human", "{question}"],
+]);
 
+// 2. Same Gemini model
 const model = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-flash",
   apiKey: process.env.GEMINI_API_KEY,
-  temperature: 0, // lower = more deterministic
 });
 
-// 3. Ask a question
-const response = await model.invoke("green tea recipe?");
+// 3. Just pipe them together
+const chatbot = template.pipe(model);
 
-// Parse Gemini’s raw text into a clean array
-const parsedList = await parser.invoke(response.content);
+// 4. Use it the same way
+const response = await chatbot.invoke({
+  question: "Which snacks are commonly eaten with chai?",
+});
 
-console.log(parsedList);
-// Example Output:
-// ["ginger", "cardamom", "cloves"]
+console.log(response.content);
+// 👉 "Chai is often enjoyed with pakoras or biscuits."
