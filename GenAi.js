@@ -33,41 +33,36 @@
 // }
 
 // main();
-import "dotenv/config";
-import { PromptTemplate } from "@langchain/core/prompts";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-
-// 1. Define the LLM
+import "dotenv/config";
+// Initialize Gemini model
 const model = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-flash",
   apiKey: process.env.GEMINI_API_KEY,
 });
+// Create a prompt template with different roles
+const template = ChatPromptTemplate.fromMessages([
+  [
+    "system",
+    `Answer the question based on the context below.
+     If the question cannot be answered using the information provided,
+     just reply with "I don't know".`,
+  ],
+  ["human", "Context: {context}"],
+  ["human", "Question: {question}"],
+]);
 
-// 2. Define the Template
-const template = PromptTemplate.fromTemplate(`Answer the question based on the
-context below. If the question cannot be answered using the information
-provided, answer with "I don't know".
+// Fill dynamic data (context + question)
+const prompt = await template.invoke({
+  context: `Chai is one of the most loved beverages in India.
+  It is made by brewing black tea leaves with milk, water, and spices like ginger and cardamom.
+  Many people enjoy chai in the evening with snacks such as pakoras or biscuits.`,
 
-Context: {context}
-Question: {question}
-Answer:`);
+  question: "tell me the snacks name?",
+});
 
-async function main() {
-  // 3. Fill the Template
-  const prompt = await template.format({
-    context: `Chai is one of the most loved beverages in India.
-    It is made by brewing black tea leaves with milk, water,
-    and spices like ginger and cardamom.
-    Many people enjoy chai in the evening with snacks
-    such as pakoras or biscuits.`,
+// Send the structured prompt to Gemini
+const response = await model.invoke(prompt);
 
-    question: `Which spice is commonly added to chai for flavor?`,
-  });
-
-  // 4. Invoke the Model
-  const response = await model.invoke(prompt);
-
-  console.log("Gemini says:", response.content);
-}
-
-main();
+console.log(response.content);
