@@ -234,17 +234,17 @@
 // const jsDocs = await jsSplitter.createDocuments([JAVASCRIPT_CODE]);
 
 // console.log(jsDocs);
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-const markdownText = `
-# LangChain
-⚡ Building applications with LLMs through composability ⚡
-## Quick Install
-\`\`\`bash
-pip install langchain
-\`\`\`
-As an open source project in a rapidly developing field, we are extremely
-open to contributions.
-`;
+// import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+// const markdownText = `
+// # LangChain
+// ⚡ Building applications with LLMs through composability ⚡
+// ## Quick Install
+// \`\`\`bash
+// pip install langchain
+// \`\`\`
+// As an open source project in a rapidly developing field, we are extremely
+// open to contributions.
+// `;
 
 // const mdSplitter = RecursiveCharacterTextSplitter.fromLanguage("markdown", {
 //   chunkSize: 60,
@@ -256,3 +256,44 @@ open to contributions.
 //   [{ source: "https://www.langchain.com" }]
 // );
 // console.log(mdDocs);
+// import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+// import "dotenv/config";
+// const model = new GoogleGenerativeAIEmbeddings({
+//   model: "embedding-001",
+//   apiKey: process.env.GEMINI_API_KEY,
+// });
+
+// const embeddings = await model.embedDocuments([
+//   "Haan ji!",
+//   "kaise hain aap sabhi",
+//   "swagat hai aap sabhi ka Chai aur Code mein",
+// ]);
+
+// console.log(embeddings);
+import { TextLoader } from "langchain/document_loaders/fs/text";
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import "dotenv/config";
+
+// Load the document from a file
+const loader = new TextLoader("./test.txt");
+const docs = await loader.load();
+
+// Split the document into smaller chunks
+const splitter = new RecursiveCharacterTextSplitter({
+  chunkSize: 1000,
+  chunkOverlap: 200,
+});
+const chunks = await splitter.splitDocuments(docs);
+
+// Generate embeddings for all the chunks using Gemini
+const embeddingsModel = new GoogleGenerativeAIEmbeddings({
+  model: "embedding-001",
+  apiKey: process.env.GEMINI_API_KEY,
+});
+const contents = [];
+for (const chunk of chunks) {
+  contents.push(chunk.pageContent);
+}
+await embeddingsModel.embedDocuments(contents);
+console.log(embeddingsModel);
