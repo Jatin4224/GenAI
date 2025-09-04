@@ -1,0 +1,15 @@
+## ( 1 ) Converting Your Documents into Text
+
+Converting your documents into text is the first step in the RAG process. Fortunately, you don't have to build complex parsing logic from scratch. **LangChain provides a wide array of document loaders** that are designed to extract text and metadata from various file types and sources.
+
+### **How Document Loaders Work**
+
+A **document loader** is a class that handles the parsing logic for a specific data source. It reads your document and converts it into a standard **`Document`** object.  A `Document` object is a core component in LangChain that holds the raw text content in a `page_content` field and a dictionary of additional context in a `metadata` field. This standardized format is crucial because it allows the rest of the LangChain ecosystem to process your data, regardless of its original source.
+
+The usage pattern is consistent and straightforward across all loaders:
+
+1. **Choose the Loader**: Select the loader that matches your document type or source (e.g., `TextLoader` for a `.txt` file, `CheerioWebBaseLoader` for a website, or `PDFLoader` for a PDF).
+2. **Instantiate the Loader**: Create an instance of the loader, providing any necessary parameters like a file path or URL.
+3. **Load the Documents**: Call the `.load()` method. This returns a list of `Document` objects, each containing the extracted text and relevant metadata like the source file path.
+
+### **Common Examples**

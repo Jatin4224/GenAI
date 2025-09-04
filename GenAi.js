@@ -153,29 +153,106 @@
 // console.log(response.content);
 // // 👉 "Ginger and cardamom are commonly added to chai for flavor."
 // 1. Same prompt
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
+// import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+// import { ChatPromptTemplate } from "@langchain/core/prompts";
 
-import "dotenv/config";
+// import "dotenv/config";
 
-const template = ChatPromptTemplate.fromMessages([
-  ["system", "You are a helpful assistant."],
-  ["human", "{question}"],
-]);
+// const template = ChatPromptTemplate.fromMessages([
+//   ["system", "You are a helpful assistant."],
+//   ["human", "{question}"],
+// ]);
 
-// 2. Same Gemini model
-const model = new ChatGoogleGenerativeAI({
-  model: "gemini-2.5-flash",
-  apiKey: process.env.GEMINI_API_KEY,
-});
+// // 2. Same Gemini model
+// const model = new ChatGoogleGenerativeAI({
+//   model: "gemini-2.5-flash",
+//   apiKey: process.env.GEMINI_API_KEY,
+// });
 
-// 3. Just pipe them together
-const chatbot = template.pipe(model);
+// // 3. Just pipe them together
+// const chatbot = template.pipe(model);
 
-// 4. Use it the same way
-const response = await chatbot.invoke({
-  question: "Which snacks are commonly eaten with chai?",
-});
+// // 4. Use it the same way
+// const response = await chatbot.invoke({
+//   question: "Which snacks are commonly eaten with chai?",
+// });
 
-console.log(response.content);
-// 👉 "Chai is often enjoyed with pakoras or biscuits."
+// console.log(response.content);
+// // 👉 "Chai is often enjoyed with pakoras or biscuits."
+// import { TextLoader } from "langchain/document_loaders/fs/text";
+
+// const loader = new TextLoader("./test.txt"); // must run from the same folder
+// const docs = await loader.load();
+// console.log(docs);
+
+// // Output: [Document(page_content='text content \n', metadata={'line_number': 0, 'source': './test.txt'})]
+// import path from "path";
+// import { fileURLToPath } from "url";
+// import { TextLoader } from "langchain/document_loaders/fs/text";
+
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+
+// const loader = new TextLoader(path.join(__dirname, "test.txt"));
+// const docs = await loader.load();
+
+// console.log(docs);
+// import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
+
+// const loader = new CheerioWebBaseLoader("https://www.langchain.com/");
+// const docs = await loader.load();
+
+// console.log(docs);
+// import { TextLoader } from "langchain/document_loaders/fs/text";
+// import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+
+// const loader = new TextLoader("./test.txt");
+// const docs = await loader.load();
+
+// const splitter = new RecursiveCharacterTextSplitter({
+//   chunkSize: 1000,
+//   chunkOverlap: 200,
+// });
+
+// const splittedDocs = await splitter.splitDocuments(docs);
+// console.log(splittedDocs);
+// import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+
+// const JAVASCRIPT_CODE = `
+// function helloWorld() {
+//   console.log("Chai Aur Code!");
+// }
+// // Call the function
+// helloWorld();
+// `;
+
+// const jsSplitter = RecursiveCharacterTextSplitter.fromLanguage("js", {
+//   chunkSize: 50,
+//   chunkOverlap: 0,
+// });
+
+// const jsDocs = await jsSplitter.createDocuments([JAVASCRIPT_CODE]);
+
+// console.log(jsDocs);
+import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+const markdownText = `
+# LangChain
+⚡ Building applications with LLMs through composability ⚡
+## Quick Install
+\`\`\`bash
+pip install langchain
+\`\`\`
+As an open source project in a rapidly developing field, we are extremely
+open to contributions.
+`;
+
+// const mdSplitter = RecursiveCharacterTextSplitter.fromLanguage("markdown", {
+//   chunkSize: 60,
+//   chunkOverlap: 0,
+// });
+
+// const mdDocs = await mdSplitter.createDocuments(
+//   [markdownText],
+//   [{ source: "https://www.langchain.com" }]
+// );
+// console.log(mdDocs);
