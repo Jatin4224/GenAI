@@ -297,53 +297,111 @@
 // }
 // await embeddingsModel.embedDocuments(contents);
 // console.log(embeddingsModel);
-import { TextLoader } from "langchain/document_loaders/fs/text";
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+// import { TextLoader } from "langchain/document_loaders/fs/text";
+// import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+// import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+// import { Pinecone } from "@pinecone-database/pinecone";
+// import { PineconeStore } from "@langchain/pinecone";
+// import "dotenv/config";
+
+// async function run() {
+//   // Step 1: Load the document and split it into chunks
+//   const loader = new TextLoader("./test.txt");
+//   const rawDocs = await loader.load();
+
+//   const splitter = new RecursiveCharacterTextSplitter({
+//     chunkSize: 1000,
+//     chunkOverlap: 200,
+//   });
+//   const docs = await splitter.splitDocuments(rawDocs);
+
+//   // Step 2: Embed each chunk using Gemini embeddings
+//   const embeddingsModel = new GoogleGenerativeAIEmbeddings({
+//     model: "embedding-001",
+//     apiKey: process.env.GEMINI_API_KEY,
+//   });
+
+//   // Step 3: Connect to Pinecone
+//   const pinecone = new Pinecone({
+//     apiKey: process.env.PINECONE_API_KEY,
+//   });
+
+//   // Get your Pinecone index (await!)
+//   const index = pinecone.index(process.env.PINECONE_INDEX_NAME);
+
+//   // Step 4: Store docs in Pinecone
+//   const vectorStore = await PineconeStore.fromDocuments(docs, embeddingsModel, {
+//     pineconeIndex: index,
+//   });
+
+//   console.log("✅ Documents successfully indexed in Pinecone!");
+//   const results = await vectorStore.similaritySearch(
+//     "What does this document say about AI?",
+//     4
+//   );
+
+//   console.log("🔍 Search results:");
+//   results.forEach((doc, i) => {
+//     console.log(`Result ${i + 1}:`, doc.pageContent);
+//   });
+// }
+
+// run().catch(console.error);
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { Pinecone } from "@pinecone-database/pinecone";
 import { PineconeStore } from "@langchain/pinecone";
 import "dotenv/config";
 
 async function run() {
-  // Step 1: Load the document and split it into chunks
-  const loader = new TextLoader("./test.txt");
-  const rawDocs = await loader.load();
-
-  const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 1000,
-    chunkOverlap: 200,
-  });
-  const docs = await splitter.splitDocuments(rawDocs);
-
-  // Step 2: Embed each chunk using Gemini embeddings
+  // Step 1: Setup embeddings + Pinecone client
   const embeddingsModel = new GoogleGenerativeAIEmbeddings({
     model: "embedding-001",
     apiKey: process.env.GEMINI_API_KEY,
   });
 
-  // Step 3: Connect to Pinecone
-  const pinecone = new Pinecone({
-    apiKey: process.env.PINECONE_API_KEY,
-  });
-
-  // Get your Pinecone index (await!)
+  const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
   const index = pinecone.index(process.env.PINECONE_INDEX_NAME);
 
-  // Step 4: Store docs in Pinecone
-  const vectorStore = await PineconeStore.fromDocuments(docs, embeddingsModel, {
+  const vectorStore = await PineconeStore.fromExistingIndex(embeddingsModel, {
     pineconeIndex: index,
   });
 
-  console.log("✅ Documents successfully indexed in Pinecone!");
-  const results = await vectorStore.similaritySearch(
-    "What does this document say about AI?",
-    4
-  );
+  // Step 2: Retrieve relevant docs
+  const question = "What does this document say about AI?";
+  // Step 1.5: Rewrite the user query
+  const rewritePrompt = `
+Rewrite the following question to make it clear and precise for searching:
+"${question}"
+`;
+  const rewrittenQuestion = await llm.invoke(rewritePrompt);
+  console.log("📝 Rewritten Question:", rewrittenQuestion);
 
-  console.log("🔍 Search results:");
-  results.forEach((doc, i) => {
-    console.log(`Result ${i + 1}:`, doc.pageContent);
+  // Step 2: Use rewritten question for retrieval
+  const results = await vectorStore.similaritySearch(rewrittenQuestion, 4);
+
+  const context = results.map((doc) => doc.pageContent).join("\n\n");
+
+  // Step 3: Generate answer with Gemini
+  const llm = new ChatGoogleGenerativeAI({
+    model: "gemini-2.5-flash",
+    apiKey: process.env.GEMINI_API_KEY,
   });
+
+  const prompt = `
+You are a helpful assistant. Use the provided context to answer the question. 
+Do not make up facts, and if the answer is not in the context, say you don't know.
+
+Context:
+${context}
+
+Question: ${question}
+Answer:
+  `;
+
+  const response = await llm.invoke(prompt);
+
+  console.log("🤖 Answer:", response);
 }
 
 run().catch(console.error);
