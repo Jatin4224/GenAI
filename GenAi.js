@@ -347,6 +347,64 @@
 // }
 
 // run().catch(console.error);
+// import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+// import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+// import { Pinecone } from "@pinecone-database/pinecone";
+// import { PineconeStore } from "@langchain/pinecone";
+// import "dotenv/config";
+
+// async function run() {
+//   // Step 1: Setup embeddings + Pinecone client
+//   const embeddingsModel = new GoogleGenerativeAIEmbeddings({
+//     model: "embedding-001",
+//     apiKey: process.env.GEMINI_API_KEY,
+//   });
+
+//   const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
+//   const index = pinecone.index(process.env.PINECONE_INDEX_NAME);
+
+//   const vectorStore = await PineconeStore.fromExistingIndex(embeddingsModel, {
+//     pineconeIndex: index,
+//   });
+
+//   // Step 2: Retrieve relevant docs
+//   const question = "What does this document say about AI?";
+//   // Step 1.5: Rewrite the user query
+//   const rewritePrompt = `
+// Rewrite the following question to make it clear and precise for searching:
+// "${question}"
+// `;
+//   const rewrittenQuestion = await llm.invoke(rewritePrompt);
+//   console.log("📝 Rewritten Question:", rewrittenQuestion);
+
+//   // Step 2: Use rewritten question for retrieval
+//   const results = await vectorStore.similaritySearch(rewrittenQuestion, 4);
+
+//   const context = results.map((doc) => doc.pageContent).join("\n\n");
+
+//   // Step 3: Generate answer with Gemini
+//   const llm = new ChatGoogleGenerativeAI({
+//     model: "gemini-2.5-flash",
+//     apiKey: process.env.GEMINI_API_KEY,
+//   });
+
+//   const prompt = `
+// You are a helpful assistant. Use the provided context to answer the question.
+// Do not make up facts, and if the answer is not in the context, say you don't know.
+
+// Context:
+// ${context}
+
+// Question: ${question}
+// Answer:
+//   `;
+
+//   const response = await llm.invoke(prompt);
+
+//   console.log("🤖 Answer:", response);
+// }
+
+// run().catch(console.error);
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { Pinecone } from "@pinecone-database/pinecone";
@@ -354,7 +412,7 @@ import { PineconeStore } from "@langchain/pinecone";
 import "dotenv/config";
 
 async function run() {
-  // Step 1: Setup embeddings + Pinecone client
+  // Step 1: Setup embeddings and Pinecone client
   const embeddingsModel = new GoogleGenerativeAIEmbeddings({
     model: "embedding-001",
     apiKey: process.env.GEMINI_API_KEY,
@@ -367,41 +425,54 @@ async function run() {
     pineconeIndex: index,
   });
 
-  // Step 2: Retrieve relevant docs
-  const question = "What does this document say about AI?";
-  // Step 1.5: Rewrite the user query
-  const rewritePrompt = `
-Rewrite the following question to make it clear and precise for searching:
-"${question}"
-`;
-  const rewrittenQuestion = await llm.invoke(rewritePrompt);
-  console.log("📝 Rewritten Question:", rewrittenQuestion);
+  // Step 2: Define the original user query
+  const userQuery = "What does this document say about AI?";
 
-  // Step 2: Use rewritten question for retrieval
-  const results = await vectorStore.similaritySearch(rewrittenQuestion, 4);
-
-  const context = results.map((doc) => doc.pageContent).join("\n\n");
-
-  // Step 3: Generate answer with Gemini
+  // Step 3: Generate multiple queries from the original query
   const llm = new ChatGoogleGenerativeAI({
     model: "gemini-2.5-flash",
     apiKey: process.env.GEMINI_API_KEY,
   });
 
-  const prompt = `
+  const queryGenerationPrompt = `
+You are an assistant that takes a user's question and generates 3 different, detailed queries 
+to retrieve all relevant information. Original question: "${userQuery}"
+Return the queries as a JSON array.
+  `;
+
+  const generatedQueriesRaw = await llm.invoke(queryGenerationPrompt);
+  // ⚠️ Fix: Extract text before parsing JSON
+
+  let generatedQueriesText = generatedQueriesRaw.text;
+
+  // Remove Markdown backticks if present
+  generatedQueriesText = generatedQueriesText
+    .replace(/```json|```/g, "")
+    .trim();
+
+  // Parse JSON safely
+  // Step 4: Retrieve relevant documents for each generated query
+  let allContext = "";
+  for (const query of generatedQueries) {
+    const results = await vectorStore.similaritySearch(query, 4);
+    allContext += results.map((doc) => doc.pageContent).join("\n\n") + "\n\n";
+  }
+
+  // Step 5: Generate the final answer using all retrieved context
+  const finalPrompt = `
 You are a helpful assistant. Use the provided context to answer the question. 
 Do not make up facts, and if the answer is not in the context, say you don't know.
 
 Context:
-${context}
+${allContext}
 
-Question: ${question}
+Original Question: ${userQuery}
 Answer:
   `;
 
-  const response = await llm.invoke(prompt);
+  const finalAnswer = await llm.invoke(finalPrompt);
 
-  console.log("🤖 Answer:", response);
+  console.log("🤖 Answer:", finalAnswer);
 }
 
 run().catch(console.error);
