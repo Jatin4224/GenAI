@@ -270,30 +270,80 @@
 // ]);
 
 // console.log(embeddings);
+// import { TextLoader } from "langchain/document_loaders/fs/text";
+// import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
+// import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+// import "dotenv/config";
+
+// // Load the document from a file
+// const loader = new TextLoader("./test.txt");
+// const docs = await loader.load();
+
+// // Split the document into smaller chunks
+// const splitter = new RecursiveCharacterTextSplitter({
+//   chunkSize: 1000,
+//   chunkOverlap: 200,
+// });
+// const chunks = await splitter.splitDocuments(docs);
+
+// // Generate embeddings for all the chunks using Gemini
+// const embeddingsModel = new GoogleGenerativeAIEmbeddings({
+//   model: "embedding-001",
+//   apiKey: process.env.GEMINI_API_KEY,
+// });
+// const contents = [];
+// for (const chunk of chunks) {
+//   contents.push(chunk.pageContent);
+// }
+// await embeddingsModel.embedDocuments(contents);
+// console.log(embeddingsModel);
 import { TextLoader } from "langchain/document_loaders/fs/text";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { Pinecone } from "@pinecone-database/pinecone";
+import { PineconeStore } from "@langchain/pinecone";
 import "dotenv/config";
 
-// Load the document from a file
-const loader = new TextLoader("./test.txt");
-const docs = await loader.load();
+async function run() {
+  // Step 1: Load the document and split it into chunks
+  const loader = new TextLoader("./test.txt");
+  const rawDocs = await loader.load();
 
-// Split the document into smaller chunks
-const splitter = new RecursiveCharacterTextSplitter({
-  chunkSize: 1000,
-  chunkOverlap: 200,
-});
-const chunks = await splitter.splitDocuments(docs);
+  const splitter = new RecursiveCharacterTextSplitter({
+    chunkSize: 1000,
+    chunkOverlap: 200,
+  });
+  const docs = await splitter.splitDocuments(rawDocs);
 
-// Generate embeddings for all the chunks using Gemini
-const embeddingsModel = new GoogleGenerativeAIEmbeddings({
-  model: "embedding-001",
-  apiKey: process.env.GEMINI_API_KEY,
-});
-const contents = [];
-for (const chunk of chunks) {
-  contents.push(chunk.pageContent);
+  // Step 2: Embed each chunk using Gemini embeddings
+  const embeddingsModel = new GoogleGenerativeAIEmbeddings({
+    model: "embedding-001",
+    apiKey: process.env.GEMINI_API_KEY,
+  });
+
+  // Step 3: Connect to Pinecone
+  const pinecone = new Pinecone({
+    apiKey: process.env.PINECONE_API_KEY,
+  });
+
+  // Get your Pinecone index (await!)
+  const index = pinecone.index(process.env.PINECONE_INDEX_NAME);
+
+  // Step 4: Store docs in Pinecone
+  const vectorStore = await PineconeStore.fromDocuments(docs, embeddingsModel, {
+    pineconeIndex: index,
+  });
+
+  console.log("✅ Documents successfully indexed in Pinecone!");
+  const results = await vectorStore.similaritySearch(
+    "What does this document say about AI?",
+    4
+  );
+
+  console.log("🔍 Search results:");
+  results.forEach((doc, i) => {
+    console.log(`Result ${i + 1}:`, doc.pageContent);
+  });
 }
-await embeddingsModel.embedDocuments(contents);
-console.log(embeddingsModel);
+
+run().catch(console.error);
